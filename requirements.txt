@@ -10,3 +10,5 @@ aiohttp
 alembic
 pydantic_settings
 pydantic[email]
+httpx
+pytest

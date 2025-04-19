@@ -1,3 +1,4 @@
+# define schemas for ticket creation and reading
 from pydantic import BaseModel
 from uuid import UUID
 from datetime import datetime

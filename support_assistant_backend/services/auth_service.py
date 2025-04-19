@@ -9,6 +9,7 @@ class AuthService:
         self.db = db
 
     async def signup(self, user_in: UserCreate) -> User:
+        # Hash the user's password before storing.
         hashed = get_password_hash(user_in.password)
         user = User(email=user_in.email, hashed_password=hashed)
         self.db.add(user)
@@ -17,8 +18,10 @@ class AuthService:
         return user
 
     async def authenticate(self, email: str, password: str):
+        # Retrieve user by email from the database.
         result = await self.db.execute(select(User).where(User.email == email))
         user = result.scalar_one_or_none()
+        # Verify password and generate access token if successful.
         if not user or not verify_password(password, user.hashed_password):
             return None
         access_token = create_access_token({"sub": str(user.id)})

@@ -1,3 +1,4 @@
+# define schemas for user creation and reading
 from pydantic import BaseModel, EmailStr
 from uuid import UUID
 
