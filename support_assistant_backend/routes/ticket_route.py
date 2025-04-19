@@ -1,54 +1,126 @@
-# Import necessary modules for building the API router and handling requests.
+# support_assistant_backend/routes/ticket_route.py
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
-# Import Pydantic schemas for request/response data validation.
+
 from support_assistant_backend.schemas.ticket import TicketCreate, TicketRead
 from support_assistant_backend.schemas.message import MessageCreate, MessageRead
-# Import the service layers for ticket and message logic.
 from support_assistant_backend.services.ticket_service import TicketService
 from support_assistant_backend.services.message_service import MessageService
-# Import dependencies for getting the current authenticated user and the database session.
-from support_assistant_backend.dependencies import get_current_user,get_current_admin_user
+from support_assistant_backend.dependencies import get_current_user, get_current_admin_user
 from support_assistant_backend.db.session import get_db
 
-# Create an API router instance dedicated to ticket and message routes.
 router = APIRouter()
 
-# Define endpoints for listing and creating tickets.
-# These endpoints require authentication (Depends(get_current_user)) and a database session (Depends(get_db)).
-@router.get("/", response_model=List[TicketRead])
+@router.get(
+    "/",
+    response_model=List[TicketRead],
+    status_code=status.HTTP_200_OK,
+    summary="List all tickets (admin only)",
+    responses={
+        200: {"description": "List of all tickets"},
+        403: {"description": "Admin privileges required."},
+    },
+)
 async def list_all_tickets(
-   db: AsyncSession = Depends(get_db),
-    admin=Depends(get_current_admin_user),     # ← only admin can list all tickets
+    db: AsyncSession = Depends(get_db),
+    admin=Depends(get_current_admin_user),
 ):
-    return await TicketService(db).get_all_tickets()  # admin sees every ticket
+    tickets = await TicketService(db).get_all_tickets()
+    # Return empty list if no tickets
+    return tickets
 
-@router.post("/", response_model=TicketRead)
-async def create_ticket(ticket_in: TicketCreate, user=Depends(get_current_user), db: AsyncSession = Depends(get_db)):
-    # Delegate ticket creation logic to the TicketService.
-    service = TicketService(db)
-    return await service.create_ticket(str(user.id), ticket_in)
+@router.post(
+    "/",
+    response_model=TicketRead,
+    status_code=status.HTTP_201_CREATED,
+    summary="Create a new ticket",
+    responses={
+        201: {"description": "Ticket created successfully."},
+        401: {"description": "Authentication required."},
+        422: {"description": "Validation error."},
+    },
+)
+async def create_ticket(
+    ticket_in: TicketCreate,
+    user=Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    try:
+        ticket = await TicketService(db).create_ticket(str(user.id), ticket_in)
+        return ticket
+    except Exception as e:
+        # Log error if needed
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
 
-# Define endpoint for retrieving a specific ticket, including an ownership check.
-@router.get("/{ticket_id}", response_model=TicketRead)
-# Utilizes the database session and authenticated user dependencies.
-async def get_ticket(ticket_id: str, user=Depends(get_current_user), db: AsyncSession = Depends(get_db)):
-    # Retrieve ticket using TicketService.
-    service = TicketService(db)
-    ticket = await service.get_ticket(ticket_id)
-    # Ensure the retrieved ticket belongs to the current user.
+@router.get(
+    "/{ticket_id}",
+    response_model=TicketRead,
+    status_code=status.HTTP_200_OK,
+    summary="Get a specific ticket",
+    responses={
+        200: {"description": "Ticket retrieved."},
+        401: {"description": "Authentication required."},
+        403: {"description": "Not authorized to view this ticket."},
+        404: {"description": "Ticket not found."},
+    },
+)
+async def get_ticket(
+    ticket_id: str,
+    user=Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    ticket = await TicketService(db).get_ticket(ticket_id)
+    if not ticket:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Ticket not found."
+        )
     if ticket.user_id != user.id:
-        raise HTTPException(status_code=403, detail="Not authorized")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to access this ticket."
+        )
     return ticket
 
-# Define endpoint for adding a message to a specific ticket.
-@router.post("/{ticket_id}/messages", response_model=MessageRead)
-async def add_message(ticket_id: str, msg_in: MessageCreate, user=Depends(get_current_user), db: AsyncSession = Depends(get_db)):
-    # ensure ticket ownership before adding a message.
+@router.post(
+    "/{ticket_id}/messages",
+    response_model=MessageRead,
+    status_code=status.HTTP_201_CREATED,
+    summary="Add a message to a ticket",
+    responses={
+        201: {"description": "Message added successfully."},
+        401: {"description": "Authentication required."},
+        403: {"description": "Not authorized to add message to this ticket."},
+        404: {"description": "Ticket not found."},
+        422: {"description": "Validation error."},
+    },
+)
+async def add_message(
+    ticket_id: str,
+    msg_in: MessageCreate,
+    user=Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
     ticket = await TicketService(db).get_ticket(ticket_id)
+    if not ticket:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Ticket not found."
+        )
     if ticket.user_id != user.id:
-        raise HTTPException(status_code=403, detail="Not authorized")
-    # Delegate message adding logic to the MessageService.
-    service = MessageService(db)
-    return await service.add_message(ticket_id, msg_in)
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to add message to this ticket."
+        )
+    try:
+        message = await MessageService(db).add_message(ticket_id, msg_in)
+        return message
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )

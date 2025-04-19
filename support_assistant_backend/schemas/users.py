@@ -5,6 +5,7 @@ from uuid import UUID
 class UserCreate(BaseModel):
     email: EmailStr
     password: str
+    role : str = "user"  # Default role is 'user'
   
 class UserRead(BaseModel):
     id: UUID

@@ -10,7 +10,6 @@ from support_assistant_backend.utils.security import verify_password
 from support_assistant_backend.core.config import settings
 
 from support_assistant_backend.schemas.users import UserRead
-from support_assistant_backend.dependencies import get_current_user
 # tokenUrl specifies the endpoint where clients can obtain a token.
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
