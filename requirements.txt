@@ -12,3 +12,6 @@ pydantic_settings
 pydantic[email]
 httpx
 pytest
+sqlalchemy[asyncio]
+asyncpg
+greenlet
