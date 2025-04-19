@@ -85,7 +85,7 @@ uvicorn support_assistant_backend.main:app --reload   - Or directly (for local d
 ---
 
 ## Future Improvements
-
+- **handling different cases in api request and response**: Due to time limitation i handled basic api response cases
 - **Advanced RBAC**: Fine-grained permissions beyond admin/user roles.
 - **Enhanced Prompt Context**: Include full message history in AI prompts for richer responses.
 - **Caching & Rate Limiting**: Integrate Redis for performance and protection against abuse.
