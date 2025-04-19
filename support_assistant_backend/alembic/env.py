@@ -22,6 +22,7 @@ sys.path.insert(0, dirname(dirname(abspath(__file__))))
 # Make sure this imports your actual Base and models
 from db.base_class import Base
 from models.users import User  # Explicit importtarget_metadata = Base.metadata
+target_metadata = Base.metadata
 
 # Setup logging
 if config.config_file_name is not None:

@@ -5,7 +5,7 @@ from uuid import UUID
 class UserCreate(BaseModel):
     email: EmailStr
     password: str
-
+  
 class UserRead(BaseModel):
     id: UUID
     email: EmailStr

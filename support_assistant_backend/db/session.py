@@ -1,14 +1,13 @@
 # Import necessary components for asynchronous database interaction.
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlalchemy.orm import sessionmaker
 from support_assistant_backend.core.config import settings
 
 # Create an asynchronous database engine using the URL from settings.
-engine = create_async_engine(settings.DATABASE_URL, echo=True)
+async_engine = create_async_engine(settings.DATABASE_URL, echo=True)
 # Configure an asynchronous sessionmaker to create database sessions.
-AsyncSessionLocal = sessionmaker(
-    bind=engine,
-    class_=AsyncSession,
+AsyncSessionLocal = async_sessionmaker(
+    bind=async_engine,
     expire_on_commit=False
 )
 

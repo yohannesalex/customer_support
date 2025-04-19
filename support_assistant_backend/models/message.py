@@ -18,6 +18,6 @@ class Message(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
     # Define the foreign key relationship to the 'ticket' table.
-    ticket_id = Column(PG_UUID(as_uuid=True), ForeignKey("ticket.id"))
+    ticket_id = Column(PG_UUID(as_uuid=True), ForeignKey("tickets.id"),nullable=False)
     # Define the relationship back to the Ticket model.
     ticket = relationship("Ticket", back_populates="messages")

@@ -15,3 +15,5 @@ pytest
 sqlalchemy[asyncio]
 asyncpg
 greenlet
+bcrypt
+nc

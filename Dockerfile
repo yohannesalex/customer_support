@@ -13,7 +13,6 @@ ARG DATABASE_URL
 ENV DATABASE_URL=${DATABASE_URL}
 
 
-RUN pip install -r requirements.txt
 RUN chmod +x entrypoint.sh
 
 # Install dependencies
@@ -21,6 +20,7 @@ RUN pip install poetry && \
     poetry config virtualenvs.create false && \
     poetry install 
 
+RUN cat requirements.txt | xargs poetry add
 
 RUN useradd -m appuser
 USER appuser

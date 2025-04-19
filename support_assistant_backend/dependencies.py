@@ -9,6 +9,8 @@ from support_assistant_backend.models.users import User
 from support_assistant_backend.utils.security import verify_password
 from support_assistant_backend.core.config import settings
 
+from support_assistant_backend.schemas.users import UserRead
+from support_assistant_backend.dependencies import get_current_user
 # tokenUrl specifies the endpoint where clients can obtain a token.
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
@@ -40,3 +42,14 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: AsyncSession
         raise credentials_exception
 
     return user
+
+
+async def get_current_admin_user(
+    current_user: UserRead = Depends(get_current_user),
+) -> UserRead:
+    if current_user.role != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin privileges required"
+        )
+    return current_user

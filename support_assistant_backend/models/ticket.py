@@ -13,6 +13,11 @@ class Ticket(Base):
     status = Column(String, default="open")
     created_at = Column(DateTime, default=datetime.utcnow)
 
-    user_id = Column(PG_UUID(as_uuid=True), ForeignKey("user.id"))
+    user_id = Column(PG_UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     user = relationship("User", back_populates="tickets")
-    messages = relationship("Message", back_populates="ticket", cascade="all, delete-orphan")
+    messages = relationship(
+    "Message",
+    back_populates="ticket",
+    cascade="all, delete-orphan",
+    lazy="selectin"
+)
