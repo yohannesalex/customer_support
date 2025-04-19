@@ -10,6 +10,7 @@ from support_assistant_backend.db.base_class import Base
 
 # Define the Message database model inheriting from Base.
 class Message(Base):
+    __tablename__ = 'messages'
     # Define columns for the 'message' table.
     id = Column(PG_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     content = Column(String, nullable=False)

@@ -13,9 +13,15 @@ db_url = os.getenv("DATABASE_URL", settings.DATABASE_URL)
 config.set_main_option("sqlalchemy.url", db_url)
 
 # Import your Base and models
+# Add this before target_metadata = Base.metadata
+import sys
+from os.path import abspath, dirname
+
+sys.path.insert(0, dirname(dirname(abspath(__file__))))
+
+# Make sure this imports your actual Base and models
 from db.base_class import Base
-from models import *  # noqa: F401, F403
-target_metadata = Base.metadata
+from models.users import User  # Explicit importtarget_metadata = Base.metadata
 
 # Setup logging
 if config.config_file_name is not None:
